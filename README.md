@@ -2,6 +2,7 @@
 (new to go so comments appreciated)
 
 to run locally edit kubeconfig file location in script.go to point to a kubeconfig (i.e. ~/.kube/config-go) pointing that points at localhost:8001 and run kubectl proxy with your cluster kubeconfig
+and set inClusterConfig bool in script.go to false
 
 # Deploying
 Comes with a Makefile to build for linux and a Dockerfile, build the docker image and push to your favorite registry than put that image in the helm chart and enjoy
@@ -33,3 +34,12 @@ a few notes:
 --prom-location should start with http:// or https:// (if you're running this on cluster you should probably use http://service_name.namespace_name)
 --query-exp is used per pod so replace the pod name in the prom query to %s and it'll format. By default this is expecting the pod name to be formatted in twice so your query should reflect that unless you want to quickly update the code
 also make sure the query has no spaces
+
+# Calculating scales
+find default values in options.go
+
+controller will calculate a difference value by actualMetricUsage/targetMetricUsage if that value is above (below) the scaleUpThreshold (scaleDownThreshold) it will try to scale
+for scale up, controller will take difference - 1 as the base scale amount and multiply it by a constant.
+For example: if your scaleUpConstant is 1, and your target cpu usage is 50% with actual usage 55% the difference will be 1.1
+Your usage is 10% above your target so it will try to scale up by 10%. if your scale up constant is 2 it will try to scale up by .1 * 2 or 20%
+similar functionality for scale down.
