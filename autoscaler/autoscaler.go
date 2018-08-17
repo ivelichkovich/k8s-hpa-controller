@@ -200,71 +200,71 @@ func (s *AutoScaler) pollCpuUsage() {
 	//fmt.Printf("Difference: %v\n", s.HpaEntities[0].CurrentCPU/float64(s.HpaEntities[0].TargetCPU))
 
 	// for each hpa check if needs scale
-	for _, hpaEntity := range s.HpaEntities {
-		targetCpu := float64(hpaEntity.TargetCPU)
+	for idx, _ := range s.HpaEntities {
+		targetCpu := float64(s.HpaEntities[idx].TargetCPU)
 		// check scale up?
-		if hpaEntity.CurrentCPU > targetCpu {
-			if hpaEntity.MaxReplicas == hpaEntity.CurrentReplicas {
+		if s.HpaEntities[idx].CurrentCPU > targetCpu {
+			if s.HpaEntities[idx].MaxReplicas == s.HpaEntities[idx].CurrentReplicas {
 				continue
 			}
 
-			difference := hpaEntity.CurrentCPU / targetCpu
+			difference := s.HpaEntities[idx].CurrentCPU / targetCpu
 			if debug {
-				fmt.Printf("difference from target %s = %v \n", hpaEntity.Deployment, difference)
+				fmt.Printf("difference from target %s = %v \n", s.HpaEntities[idx].Deployment, difference)
 			}
 
 			if difference > s.ScaleUpThreshold {
 				multiplier := 1 + ((difference - 1) * s.ScaleUpConstant)
-				desiredReplicas := math.Ceil(multiplier * float64(hpaEntity.CurrentReplicas))
-				if desiredReplicas > float64(hpaEntity.MaxReplicas) {
-					desiredReplicas = float64(hpaEntity.MaxReplicas)
+				desiredReplicas := math.Ceil(multiplier * float64(s.HpaEntities[idx].CurrentReplicas))
+				if desiredReplicas > float64(s.HpaEntities[idx].MaxReplicas) {
+					desiredReplicas = float64(s.HpaEntities[idx].MaxReplicas)
 				}
 				replicasToSet := int32(desiredReplicas)
-				hpaEntity.Deployment.Spec.Replicas = &replicasToSet
+				s.HpaEntities[idx].Deployment.Spec.Replicas = &replicasToSet
 
-				fmt.Printf("Increasing deployment %s to replicas %d \n", hpaEntity.Deployment.Name, replicasToSet)
+				fmt.Printf("Increasing deployment %s to replicas %d \n", s.HpaEntities[idx].Deployment.Name, replicasToSet)
 
-				returnDeployment, err := s.clientset.Deployments(s.Namespace).Update(hpaEntity.Deployment)
+				returnDeployment, err := s.clientset.Deployments(s.Namespace).Update(s.HpaEntities[idx].Deployment)
 				if err != nil {
 					glog.Fatal(err)
 				}
 
 				s.recentlyScaled = s.ScaleDelay
-				hpaEntity.CurrentReplicas = *returnDeployment.Spec.Replicas
+				s.HpaEntities[idx].CurrentReplicas = *returnDeployment.Spec.Replicas
 			}
 		}
 
 		//check scale down?
-		if hpaEntity.CurrentCPU < targetCpu {
-			if hpaEntity.MinReplicas == hpaEntity.CurrentReplicas {
+		if s.HpaEntities[idx].CurrentCPU < targetCpu {
+			if s.HpaEntities[idx].MinReplicas == s.HpaEntities[idx].CurrentReplicas {
 				continue
 			}
 
-			difference := hpaEntity.CurrentCPU / targetCpu
+			difference := s.HpaEntities[idx].CurrentCPU / targetCpu
 			if debug {
-				fmt.Printf("difference from target %s = %v \n", hpaEntity.Deployment, difference)
+				fmt.Printf("difference from target %s = %v \n", s.HpaEntities[idx].Deployment, difference)
 			}
 
 			//if difference < s.ScaleDownThreshold  {
 			if difference < 1  {
 				multiplier := 1 - ((1 - difference) * s.ScaleDownConstant)
-				desiredReplicas := math.Floor(multiplier * float64(hpaEntity.CurrentReplicas))
+				desiredReplicas := math.Floor(multiplier * float64(s.HpaEntities[idx].CurrentReplicas))
 				fmt.Printf("desired replicas %v\n", desiredReplicas)
-				if desiredReplicas < float64(hpaEntity.MinReplicas) {
-					desiredReplicas = float64(hpaEntity.MinReplicas)
+				if desiredReplicas < float64(s.HpaEntities[idx].MinReplicas) {
+					desiredReplicas = float64(s.HpaEntities[idx].MinReplicas)
 				}
 				replicasToSet := int32(desiredReplicas)
-				hpaEntity.Deployment.Spec.Replicas = &replicasToSet
+				s.HpaEntities[idx].Deployment.Spec.Replicas = &replicasToSet
 
-				fmt.Printf("Decreasing deployment %s to replicas %d \n", hpaEntity.Deployment.Name, replicasToSet)
+				fmt.Printf("Decreasing deployment %s to replicas %d \n", s.HpaEntities[idx].Deployment.Name, replicasToSet)
 
-				returnDeployment, err := s.clientset.Deployments(s.Namespace).Update(hpaEntity.Deployment)
+				returnDeployment, err := s.clientset.Deployments(s.Namespace).Update(s.HpaEntities[idx].Deployment)
 				if err != nil {
 					glog.Fatal(err)
 				}
 
 				s.recentlyScaled = s.ScaleDelay
-				hpaEntity.CurrentReplicas = *returnDeployment.Spec.Replicas
+				s.HpaEntities[idx].CurrentReplicas = *returnDeployment.Spec.Replicas
 			}
 		}
 	}

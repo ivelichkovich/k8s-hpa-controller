@@ -37,6 +37,8 @@ a few notes:
 --query-exp is used per pod so replace the pod name in the prom query to %s and it'll format. By default this is expecting the pod name to be formatted in twice so your query should reflect that unless you want to quickly update the code
 also make sure the query has no spaces
 
+There is no reason to poll more often than your prometheus scrape period because the data will be the same, if you want this more responsive prometheus must scrape more frequently
+
 # Calculating scales
 find default values in options.go
 
