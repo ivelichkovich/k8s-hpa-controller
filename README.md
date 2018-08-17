@@ -27,3 +27,9 @@ Query I'm using to find CPU percentage by default
 
 sum(label_replace(rate(container_cpu_usage_seconds_total{pod_name=\"%s\"}[5m]),\"pod\",\"$1\",\"pod_name\",\"(.+)\"))/sum(kube_pod_container_resource_requests_cpu_cores{pod=\"%s\"})*100
 
+# Options
+see options.go for default values and available options, I'm not going to rewrite that into the readme
+a few notes:
+--prom-location should start with http:// or https:// (if you're running this on cluster you should probably use http://service_name.namespace_name)
+--query-exp is used per pod so replace the pod name in the prom query to %s and it'll format. By default this is expecting the pod name to be formatted in twice so your query should reflect that unless you want to quickly update the code
+also make sure the query has no spaces
