@@ -19,7 +19,7 @@ scaleDownThreshold: .9
 scaleDelay: 1
 debug: false
 prometheusAddress: "http://alerting-prometheus-server.kube-tools"
-#QueryExpression:   "sum(label_replace(rate(container_cpu_usage_seconds_total{pod_name=\"%s\"}[5m]),\"pod\",\"$1\",\"pod_name\",\"(.+)\"))/sum(kube_pod_container_resource_requests_cpu_cores{pod=\"%s\"})*100"
+#QueryExpression:   "sum(label_replace(rate(container_cpu_usage_seconds_total{pod_name=\"%s\"}[5m]),\"pod\",\"$1\",\"pod_name\",\"(.+)\"))/sum(kube_pod_container_resource_limits_cpu_cores{pod=\"%s\"})*100"
 
 serviceType: ClusterIP
 
@@ -32,10 +32,10 @@ ingress:
 resources:
   limits:
     cpu: 300m
-    memory: 350Mi
+    memory: 100Mi
   requests:
     cpu: 300m
-    memory: 350Mi
+    memory: 50Mi
 
 rbac:
   create: true

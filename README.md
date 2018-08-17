@@ -1,6 +1,9 @@
 # HPA-CONTROLLER
 (new to go so comments appreciated)
 
+# WARNING
+Test this for yourself before relying on it in production
+
 to run locally edit kubeconfig file location in script.go to point to a kubeconfig (i.e. ~/.kube/config-go) pointing that points at localhost:8001 and run kubectl proxy with your cluster kubeconfig
 and set inClusterConfig bool in script.go to false
 
