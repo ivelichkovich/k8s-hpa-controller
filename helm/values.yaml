@@ -1,0 +1,50 @@
+# container name
+name: hpa-controller
+
+serviceName: hpa-controller
+servicePort: 80
+
+#image: throw your image in ECR or something, just use the dockerfile and throw the image here
+containerPort: 8081
+replicas: 1
+
+namespace: default
+environment: dev
+
+pollPeriod: "60s"
+scaleUpConstant: 3
+scaleUpThreshold: 1.1
+scaleDownConstant: 1
+scaleDownThreshold: .9
+scaleDelay: 1
+debug: false
+prometheusAddress: "http://alerting-prometheus-server.kube-tools"
+#QueryExpression:   "sum(label_replace(rate(container_cpu_usage_seconds_total{pod_name=\"%s\"}[5m]),\"pod\",\"$1\",\"pod_name\",\"(.+)\"))/sum(kube_pod_container_resource_requests_cpu_cores{pod=\"%s\"})*100"
+
+serviceType: ClusterIP
+
+ingress:
+  enabled: true
+  hostName: "something.somethingelse.io"
+  annotations:
+    kubernetes.io/ingress.class: nginx-vpn
+
+resources:
+  limits:
+    cpu: 300m
+    memory: 350Mi
+  requests:
+    cpu: 300m
+    memory: 350Mi
+
+rbac:
+  create: true
+
+# label selector to filter pods by, e.g. app=foo,stage!=prod
+labels:
+
+# annotation selector to filter pods by, e.g. chaos.alpha.kubernetes.io/enabled=true
+annotations:
+
+# namespace selector to filter pods by, e.g. '!kube-system,!production' (use quotes)
+namespaces:

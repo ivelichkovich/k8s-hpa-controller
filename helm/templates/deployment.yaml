@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}
+        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+        release: {{ .Release.Name }}
+        heritage: {{ .Release.Service }}
+    spec:
+      serviceAccountName: {{ .Values.name }}
+      containers:
+      - name: {{ .Values.name }}
+        image: {{ .Values.image }}
+        args:
+          - --debug={{ .Values.debug }}
+          - --prom-location={{ .Values.prometheusAddress }}
+          - --poll-period={{ .Values.pollPeriod }}
+          - --namespace={{ .Values.namespace }}
+          - --scale-up-constant={{ .Values.scaleUpConstant }}
+          - --scale-down-constant={{ .Values.scaleDownConstant }}
+          - --scale-up-threshold={{ .Values.scaleUpThreshold }}
+          - --scale-down-threshold={{ .Values.scaleDownThreshold }}
+          - --scale-delay={{ .Values.scaleDelay }}
+        resources:
+          requests:
+            cpu: {{ .Values.resources.cpu }}
+            memory: {{ .Values.resources.memory }}
+          limits:
+            cpu: {{ .Values.resources.cpu }}
+            memory: {{ .Values.resources.memory }}

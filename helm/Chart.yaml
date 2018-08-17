@@ -1,0 +1,11 @@
+name: k8s-hpa-controller
+version: 0.0.1
+appVersion: 0.0.1
+description: HPA-controller to workaround EKS having native HPA broken
+sources:
+- https://github.com/ivelichkovich/k8s-hpa-controller
+maintainers:
+- name: Igor Velichkovich
+  email: ivelichkovich@gmail.com
+#I rarely check that email, open a github issue and I'll reach you
+engine: gotpl

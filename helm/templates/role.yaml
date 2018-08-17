@@ -1,0 +1,14 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Values.name }}-role
+  namespace: {{ .Values.namespace }}
+rules:
+- apiGroups: ["*"]
+  resources: ["deployments", "pods", "horizontalpodautoscalers"]
+  verbs: ["list", "get"]
+- apiGroups: [""]
+  resources: ["deployment"]
+  verbs: ["update"]
+{{- end -}}
