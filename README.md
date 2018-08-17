@@ -1,5 +1,5 @@
 # HPA-CONTROLLER
-
+(new to go so comments appreciated)
 
 to run locally edit kubeconfig file location in script.go to point to a kubeconfig (i.e. ~/.kube/config-go) pointing that points at localhost:8001 and run kubectl proxy with your cluster kubeconfig
 
@@ -10,15 +10,20 @@ Will deploy with an ingress, set your values appropriately
 # Prereqs
 
 Must be running prometheus that is scrapping cAdvisor. Make sure you have the container_cpu_usage_seconds_total and kube_pod_container_resource_requests_cpu_cores metrics
-You can use your own custom query. Options are in options.go. Be sure to set your prometheus address and your
+You can use your own custom query.
+Options are in options.go.
+Be sure to set your prometheus address and namespace
 
-code uses target cpu and cpu as default query, if you want to use a different query the hpa target % needs to be relevant to that query
+This will only work for one namespace, if you want to make it cluster wide contributions are welcome
 
+# How it works
+
+The controller will poll your existing native k8s HPAs to get min/max replicas and target cpu (if you want to use a custom query like memory it will still use the target from your hpa so if it's 50% it'll be a 50% memory target)
+It will then poll your deployments that are the targets of the HPAs, make sure the deployment has a label app=SOMETHING that matches the label on the deployments pods
+Then the controller grabs the pod names and queries prometheus to generate the usage metric you see in the UI
 UI on port 8081
 
-Would love feedback on the query I'm using to find cpu usage, even for single container pods some odd values show up sometimes like over 100%
+Query I'm using to find CPU percentage by default
 
 sum(label_replace(rate(container_cpu_usage_seconds_total{pod_name=\"%s\"}[5m]),\"pod\",\"$1\",\"pod_name\",\"(.+)\"))/sum(kube_pod_container_resource_requests_cpu_cores{pod=\"%s\"})*100
 
-
-Comes with helm chart and Dockerfile (I threw it together quickly so excuse that it's not exactly best practice, contributions welcome)
