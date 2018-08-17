@@ -21,8 +21,8 @@ type AutoScalerConfig struct {
 func NewAutoScalerConfig() *AutoScalerConfig {
 	return &AutoScalerConfig{
 		Debug:             false,
-		PrometheusAddress: "https://prometheus.namespace",
-		QueryExpression:   "sum(label_replace(rate(container_cpu_usage_seconds_total{pod_name=\"%s\"}[5m]),\"pod\",\"$1\",\"pod_name\",\"(.+)\"))/sum(kube_pod_container_resource_requests_cpu_cores{pod=\"%s\"})*100",
+		PrometheusAddress: "http://prometheus.namespace",
+		QueryExpression:   "sum(label_replace(rate(container_cpu_usage_seconds_total{pod_name=\"%s\"}[5m]),\"pod\",\"$1\",\"pod_name\",\"(.+)\"))/sum(kube_pod_container_resource_limits_cpu_cores{pod=\"%s\"})*100",
 		PollPeriod:       	"60s",
 		Namespace:			"default",
 		ScaleUpConstant:	3,

@@ -26,7 +26,9 @@ UI on port 8081
 
 Query I'm using to find CPU percentage by default
 
-sum(label_replace(rate(container_cpu_usage_seconds_total{pod_name=\"%s\"}[5m]),\"pod\",\"$1\",\"pod_name\",\"(.+)\"))/sum(kube_pod_container_resource_requests_cpu_cores{pod=\"%s\"})*100
+sum(label_replace(rate(container_cpu_usage_seconds_total{pod_name=\"%s\"}[5m]),\"pod\",\"$1\",\"pod_name\",\"(.+)\"))/sum(kube_pod_container_resource_limits_cpu_cores{pod=\"%s\"})*100
+
+
 
 # Options
 see options.go for default values and available options, I'm not going to rewrite that into the readme
@@ -43,3 +45,5 @@ for scale up, controller will take difference - 1 as the base scale amount and m
 For example: if your scaleUpConstant is 1, and your target cpu usage is 50% with actual usage 55% the difference will be 1.1
 Your usage is 10% above your target so it will try to scale up by 10%. if your scale up constant is 2 it will try to scale up by .1 * 2 or 20%
 similar functionality for scale down.
+
+

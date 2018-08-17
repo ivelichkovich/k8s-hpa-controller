@@ -82,6 +82,7 @@ func (s *AutoScaler) Run() {
 		select {
 		case <-ticker:
 			if s.recentlyScaled < 1 {
+				fmt.Println("Polling")
 				s.pollCpuUsage()
 			} else {
 				s.recentlyScaled--
@@ -223,8 +224,13 @@ func (s *AutoScaler) pollCpuUsage() {
 
 				fmt.Printf("Increasing deployment %s to replicas %d \n", hpaEntity.Deployment.Name, replicasToSet)
 
-				s.clientset.Deployments(s.Namespace).Update(hpaEntity.Deployment)
+				returnDeployment, err := s.clientset.Deployments(s.Namespace).Update(hpaEntity.Deployment)
+				if err != nil {
+					glog.Fatal(err)
+				}
+
 				s.recentlyScaled = s.ScaleDelay
+				hpaEntity.CurrentReplicas = *returnDeployment.Spec.Replicas
 			}
 		}
 
@@ -252,8 +258,13 @@ func (s *AutoScaler) pollCpuUsage() {
 
 				fmt.Printf("Decreasing deployment %s to replicas %d \n", hpaEntity.Deployment.Name, replicasToSet)
 
-				s.clientset.Deployments(s.Namespace).Update(hpaEntity.Deployment)
+				returnDeployment, err := s.clientset.Deployments(s.Namespace).Update(hpaEntity.Deployment)
+				if err != nil {
+					glog.Fatal(err)
+				}
+
 				s.recentlyScaled = s.ScaleDelay
+				hpaEntity.CurrentReplicas = *returnDeployment.Spec.Replicas
 			}
 		}
 	}
