@@ -23,17 +23,29 @@ func homePage(scaler *autoscaler.AutoScaler)  http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if scaler.HpaEntities != nil {
 			for _, hpaEntity := range scaler.HpaEntities {
-				//
-				fmt.Fprintf(
-					w,
-					"APP: %s \n\t TARGETS: %v%% / %d%% \n\t MinReplicas: %d \t MaxReplicas: %d \t CurrentReplicas: %d \n\n",
-					hpaEntity.Deployment.Name,
-					hpaEntity.CurrentCPU,
-					hpaEntity.TargetCPU,
-					hpaEntity.MinReplicas,
-					hpaEntity.MaxReplicas,
-					hpaEntity.CurrentReplicas,
-				)
+				if hpaEntity.RunningFor5min {
+					fmt.Fprintf(
+						w,
+						"APP: %s \n\t TARGETS: %v%% / %d%% \n\t MinReplicas: %d \t MaxReplicas: %d \t CurrentReplicas: %d \n\n",
+						hpaEntity.Deployment.Name,
+						hpaEntity.CurrentCPU,
+						hpaEntity.TargetCPU,
+						hpaEntity.MinReplicas,
+						hpaEntity.MaxReplicas,
+						hpaEntity.CurrentReplicas,
+					)
+				} else {
+					fmt.Fprintf(
+						w,
+						"APP: %s \n\t No pod has been running for 5minutes so compute usage ignored \n\t TARGETS: %v%% / %d%% \n\t MinReplicas: %d \t MaxReplicas: %d \t CurrentReplicas: %d \n\n",
+						hpaEntity.Deployment.Name,
+						hpaEntity.CurrentCPU,
+						hpaEntity.TargetCPU,
+						hpaEntity.MinReplicas,
+						hpaEntity.MaxReplicas,
+						hpaEntity.CurrentReplicas,
+					)
+				}
 			}
 		} else {
 			fmt.Fprint(w, "No HPAs Currently found")

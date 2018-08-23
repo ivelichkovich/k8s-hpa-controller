@@ -46,6 +46,7 @@ type HpaEntity struct {
 	CurrentCPU			float64
 	Deployment			*v1beta1.Deployment
 	CurrentReplicas		int32
+	RunningFor5min		bool
 }
 
 func NewAutoScaler(c *options.AutoScalerConfig, clientset *kubernetes.Clientset) (*AutoScaler, error) {
@@ -94,6 +95,7 @@ func (s *AutoScaler) Run() {
 }
 
 func (s *AutoScaler) generateHpaEntities() {
+	fmt.Printf("Polling\n")
 	debug := s.debug
 	namespace := s.Namespace
 	hpas, err := s.clientset.HorizontalPodAutoscalers(namespace).List(v1.ListOptions{})
@@ -124,7 +126,12 @@ func (s *AutoScaler) generateHpaEntities() {
 
 		podCpuUsages := make([]float64, len(pods.Items))
 		// find cpu usage (or query expression for the pods)
+		runningFor5min := false
 		for _, pod := range pods.Items {
+			if !checkContainersRunningFor5min(pod) {
+				continue
+			}
+			runningFor5min = true
 			if debug {
 				fmt.Printf("Found pod for deployment %s: as %s", deploymentName, pod.Name)
 			}
@@ -176,7 +183,10 @@ func (s *AutoScaler) generateHpaEntities() {
 				podsWithData++
 			}
 		}
-		averageCpuUsage := total / podsWithData
+		averageCpuUsage := 0.0
+		if podsWithData != 0 {
+			averageCpuUsage = total / podsWithData
+		}
 
 		hpaEntity := HpaEntity {
 			MaxReplicas: hpa.Spec.MaxReplicas,
@@ -185,10 +195,25 @@ func (s *AutoScaler) generateHpaEntities() {
 			CurrentCPU: averageCpuUsage,
 			Deployment: deployment,
 			CurrentReplicas: *deployment.Spec.Replicas,
+			RunningFor5min: runningFor5min,
 		}
 		hpaEntities = append(hpaEntities, hpaEntity)
 	}
 	s.HpaEntities = hpaEntities
+}
+
+func checkContainersRunningFor5min(pod v1.Pod) bool {
+	// make sure pod running for 5 minutes
+	if !pod.Status.StartTime.Add(time.Duration(1000000000 * 60 * 5)).Before(time.Now()) || pod.Status.Phase != "Running" {
+		return false
+	}
+	// make sure all containers are running
+	for _, containerStatus := range pod.Status.ContainerStatuses {
+		if !containerStatus.Ready {
+			return false
+		}
+	}
+	return true
 }
 
 func (s *AutoScaler) pollCpuUsage() {
